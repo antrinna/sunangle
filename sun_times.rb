@@ -1,3 +1,4 @@
+# code extended from ruby sun times gem: https://github.com/joeyates/ruby-sun-times
 # Algorithm from http://williams.best.vwh.net/sunrise_sunset_algorithm.htm
 
 require 'date'
@@ -47,17 +48,27 @@ class SunTimes
   #   SunTimes.new.rise(Date.new(2010, 3, 8), 43.779, 11.432)
   #   > Mon Mar 08 05:39:53 UTC 2010
   def rise(date, latitude, longitude)
-    calculate(:rise, date, latitude, longitude)
+    calculate(:rise, date, latitude, longitude, options[:zenith])
   end
 
   # calculates sunset, see #rise for parameters
   def set(date, latitude, longitude)
-    calculate(:set, date, latitude, longitude)
+    calculate(:set, date, latitude, longitude, options[:zenith])
   end
+
+  def sa_rise(date, latitude, longitude, zenith)
+    calculate(:rise, date, latitude, longitude, zenith)
+  end
+
+  # calculates sunset, see #rise for parameters
+  def sa_set(date, latitude, longitude, zenith)
+    calculate(:set, date, latitude, longitude, zenith)
+  end
+
 
   private
 
-  def calculate(event, date, latitude, longitude)
+  def calculate(event, date, latitude, longitude, zenith)
     datetime = to_datetime(date)
     raise "Unknown event '#{event}'" unless KNOWN_EVENTS.include?(event)
 
@@ -100,7 +111,7 @@ class SunTimes
     cos_declination = Math.cos(Math.asin(sin_declination))
 
     cos_local_hour_angle =
-      (Math.cos(degrees_to_radians(options[:zenith])) - (sin_declination * Math.sin(degrees_to_radians(latitude)))) /
+      (Math.cos(degrees_to_radians(zenith)) - (sin_declination * Math.sin(degrees_to_radians(latitude)))) /
       (cos_declination * Math.cos(degrees_to_radians(latitude)))
 
     # the sun never rises on this location (on the specified date)
@@ -200,3 +211,10 @@ class SunTimes
     d
   end
 end
+
+#tests:
+#sun_times = SunTimes.new
+#puts sun_times.rise(Date.new(2010, 3, 8), 43.779, 11.432)
+#puts sun_times.set(Date.new(2010, 3, 8), 43.779, 11.432)
+#puts sun_times.sa_rise(Date.new(2012, 3, 8), 40, 110, 45)
+#puts sun_times.sa_set(Date.new(2012, 3, 8), 40, 110, 45)
